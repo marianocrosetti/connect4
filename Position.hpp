@@ -36,6 +36,17 @@
 #ifndef C4_LINES
 #define C4_LINES 15
 #endif
+// C4_MIRROR_KEYS: 1 = key3() gives the same key to a position and its left-right mirror (valid only if the
+// rules are mirror-symmetric); 0 = mirrors get different keys. Default: 0 only when exactly one of the
+// two diagonals counts (D1 xor D2), because the mirror swaps the diagonals and the values differ.
+#ifndef C4_MIRROR_KEYS
+#if ((C4_LINES & 4) != 0) != ((C4_LINES & 8) != 0)
+#define C4_MIRROR_KEYS 0
+#else
+#define C4_MIRROR_KEYS 1
+#endif
+#endif
+
 namespace GameSolver {
 namespace Connect4 {
 /**
@@ -186,7 +197,12 @@ class Position {
     uint64_t key_reverse = 0;
     for(int i = Position::WIDTH; i--;) partialKey3(key_reverse, i);  // compute key in decreasing order of columns
 
+#if C4_MIRROR_KEYS
     return key_forward < key_reverse ? key_forward / 3 : key_reverse / 3; // take the smallest key and divide per 3 as the last base3 digit is always 0
+#else
+    (void)key_reverse;
+    return key_forward / 3;  // mirror positions get different keys
+#endif
   }
 
   /**
