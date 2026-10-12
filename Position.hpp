@@ -23,6 +23,14 @@
 #include <cstdint>
 #include <cassert>
 
+// C4_WIDTH, C4_HEIGHT: board size (default 7x6). Must satisfy WIDTH < 10 and WIDTH*(HEIGHT+1) <= 64 for the book code.
+#ifndef C4_WIDTH
+#define C4_WIDTH 7
+#endif
+#ifndef C4_HEIGHT
+#define C4_HEIGHT 6
+#endif
+
 // C4_LINES: bit mask of the line directions that count as "four in a row":
 // V=1 (vertical), H=2 (horizontal), D1=4 (diagonal \\), D2=8 (diagonal /). 15 = standard Connect 4.
 #ifndef C4_LINES
@@ -88,8 +96,8 @@ namespace Connect4 {
 
 class Position {
  public:
-  static constexpr int WIDTH = 7;  // width of the board
-  static constexpr int HEIGHT = 6; // height of the board
+  static constexpr int WIDTH = C4_WIDTH;   // width of the board
+  static constexpr int HEIGHT = C4_HEIGHT; // height of the board
 
   // Board size is 64bits or 128 bits depending on WIDTH and HEIGHT
   using position_t = typename std::conditional < WIDTH * (HEIGHT + 1) <= 64, uint64_t, __int128>::type;
