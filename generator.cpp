@@ -8,6 +8,14 @@
 
 using namespace GameSolver::Connect4;
 
+// Compile with -DBOOK_SIZE_=<21..27> -DDEPTH_=<max moves> (Pons hardcodes 23 and 14).
+#ifndef BOOK_SIZE_
+#define BOOK_SIZE_ 23
+#endif
+#ifndef DEPTH_
+#define DEPTH_ 14
+#endif
+
 std::unordered_set<uint64_t> visited;
 
 /**
@@ -41,8 +49,8 @@ void explore(const Position &P, char* pos_str, const int depth) {
  * Read input until EOF or an empty line is reached.
  */
 void generate_opening_book() {
-  static constexpr int BOOK_SIZE = 23; // store 2^BOOK_SIZE positions in the book
-  static constexpr int DEPTH = 14;     // max depth of every position to be stored
+  static constexpr int BOOK_SIZE = BOOK_SIZE_;  // store 2^BOOK_SIZE positions in the book
+  static constexpr int DEPTH = DEPTH_;          // max depth of every position to be stored
   static constexpr double LOG_3 = 1.58496250072; // log2(3)
   TranspositionTable<uint_t<int((DEPTH + Position::WIDTH -1) * LOG_3) + 1 - BOOK_SIZE>, Position::position_t, uint8_t, BOOK_SIZE> *table =
     new TranspositionTable<uint_t<int((DEPTH + Position::WIDTH -1) * LOG_3) + 1 - BOOK_SIZE>, Position::position_t, uint8_t, BOOK_SIZE>();
@@ -81,7 +89,7 @@ void generate_opening_book() {
 int main(int argc, char** argv) {
   if(argc > 1) {
     int depth = atoi(argv[1]);
-    char pos_str[depth + 1] = {0};
+    char pos_str[64] = {0};  // was a variable-length array (does not compile with clang)
     explore(Position(), pos_str, depth);
   } else generate_opening_book();
 }
