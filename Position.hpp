@@ -23,6 +23,11 @@
 #include <cstdint>
 #include <cassert>
 
+// C4_LINES: bit mask of the line directions that count as "four in a row":
+// V=1 (vertical), H=2 (horizontal), D1=4 (diagonal \\), D2=8 (diagonal /). 15 = standard Connect 4.
+#ifndef C4_LINES
+#define C4_LINES 15
+#endif
 namespace GameSolver {
 namespace Connect4 {
 /**
@@ -298,17 +303,23 @@ class Position {
    * @return a bitmap of all the winning free spots making an alignment
    */
   static position_t compute_winning_position(position_t position, position_t mask) {
+    position_t r = 0, p = 0;
+#if C4_LINES & 1
     // vertical;
-    position_t r = (position << 1) & (position << 2) & (position << 3);
+    r = (position << 1) & (position << 2) & (position << 3);
+#endif
 
+#if C4_LINES & 2
     //horizontal
-    position_t p = (position << (HEIGHT + 1)) & (position << 2 * (HEIGHT + 1));
+    p = (position << (HEIGHT + 1)) & (position << 2 * (HEIGHT + 1));
     r |= p & (position << 3 * (HEIGHT + 1));
     r |= p & (position >> (HEIGHT + 1));
     p = (position >> (HEIGHT + 1)) & (position >> 2 * (HEIGHT + 1));
     r |= p & (position << (HEIGHT + 1));
     r |= p & (position >> 3 * (HEIGHT + 1));
+#endif
 
+#if C4_LINES & 4
     //diagonal 1
     p = (position << HEIGHT) & (position << 2 * HEIGHT);
     r |= p & (position << 3 * HEIGHT);
@@ -316,7 +327,9 @@ class Position {
     p = (position >> HEIGHT) & (position >> 2 * HEIGHT);
     r |= p & (position << HEIGHT);
     r |= p & (position >> 3 * HEIGHT);
+#endif
 
+#if C4_LINES & 8
     //diagonal 2
     p = (position << (HEIGHT + 2)) & (position << 2 * (HEIGHT + 2));
     r |= p & (position << 3 * (HEIGHT + 2));
@@ -324,6 +337,7 @@ class Position {
     p = (position >> (HEIGHT + 2)) & (position >> 2 * (HEIGHT + 2));
     r |= p & (position << (HEIGHT + 2));
     r |= p & (position >> 3 * (HEIGHT + 2));
+#endif
 
     return r & (board_mask ^ mask);
   }
