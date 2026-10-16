@@ -23,6 +23,11 @@
 #include <cstdint>
 #include <cassert>
 
+// Required, so a wrong board cannot be built by accident
+#if !defined(C4_WIDTH) || !defined(C4_HEIGHT)
+#error "define the board size: -DC4_WIDTH=<w> -DC4_HEIGHT=<h>"
+#endif
+
 namespace GameSolver {
 namespace Connect4 {
 /**
@@ -83,8 +88,8 @@ namespace Connect4 {
 
 class Position {
  public:
-  static constexpr int WIDTH = 7;  // width of the board
-  static constexpr int HEIGHT = 6; // height of the board
+  static constexpr int WIDTH = C4_WIDTH;   // width of the board
+  static constexpr int HEIGHT = C4_HEIGHT; // height of the board
 
   // Board size is 64bits or 128 bits depending on WIDTH and HEIGHT
   using position_t = typename std::conditional < WIDTH * (HEIGHT + 1) <= 64, uint64_t, __int128>::type;
