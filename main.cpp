@@ -21,6 +21,8 @@
 
 using namespace GameSolver::Connect4;
 
+static constexpr Rules RULES = REAL_RULES;
+
 /**
  * Main function.
  * Reads Connect 4 positions, line by line, from standard input
@@ -33,7 +35,7 @@ using namespace GameSolver::Connect4;
  *  will generate an error message to standard error and an empty line to standard output.
  */
 int main(int argc, char** argv) {
-  Solver solver(REAL_RULES);
+  Solver solver(RULES);
   bool weak = false;
   bool analyze = false;
 
@@ -55,7 +57,7 @@ int main(int argc, char** argv) {
 
   for(int l = 1; std::getline(std::cin, line); l++) {
     Position P;
-    if(P.play(line, REAL_RULES) != line.size()) {
+    if(P.play(line, RULES) != line.size()) {
       std::cerr << "Line " << l << ": Invalid move " << (P.nbMoves() + 1) << " \"" << line << "\"" << std::endl;
     } else {
       std::cout << line;

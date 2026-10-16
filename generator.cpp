@@ -8,6 +8,8 @@
 
 using namespace GameSolver::Connect4;
 
+static constexpr Rules RULES = REAL_RULES;
+
 std::unordered_set<uint64_t> visited;
 
 /**
@@ -25,7 +27,7 @@ void explore(const Position &P, char* pos_str, const int depth) {
   if(nb_moves >= depth) return;  // do not explore at further depth
 
   for(int i = 0; i < Position::WIDTH; i++) // explore all possible moves
-    if(P.canPlay(i) && !P.isWinningMove(i, REAL_RULES)) {
+    if(P.canPlay(i) && !P.isWinningMove(i, RULES)) {
       Position P2(P);
       P2.playCol(i);
       pos_str[nb_moves] = '1' + i;
@@ -58,7 +60,7 @@ void generate_opening_book() {
 
     Position P;
     if(iss.fail() || !iss.eof()
-        || P.play(pos, REAL_RULES) != pos.length()
+        || P.play(pos, RULES) != pos.length()
         || score < Position::MIN_SCORE || score > Position::MAX_SCORE) {  // a valid line is a position a space and a valid score
       std::cerr << "Invalid line (line ignored): " << line << std::endl;
       continue;
