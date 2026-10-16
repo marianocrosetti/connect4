@@ -30,6 +30,19 @@
 
 namespace GameSolver {
 namespace Connect4 {
+
+static constexpr unsigned LINE_V_BIT  = 1u << 0; // vertical
+static constexpr unsigned LINE_H_BIT  = 1u << 1; // horizontal
+static constexpr unsigned LINE_D1_BIT = 1u << 2; // diagonal \ (down-right)
+static constexpr unsigned LINE_D2_BIT = 1u << 3; // diagonal / (up-right)
+static constexpr unsigned ALL_LINES_MASK = LINE_V_BIT | LINE_H_BIT | LINE_D1_BIT | LINE_D2_BIT;
+
+// Blind variant evaluates positions with fewer line directions.
+struct Rules {
+  unsigned lines_mask; // OR of LINE_*_BIT
+};
+static constexpr Rules REAL_RULES{ALL_LINES_MASK};
+
 /**
  * A class storing a Connect 4 position.
  * Functions are relative to the current player to play.
@@ -118,6 +131,7 @@ class Position {
   /*
    * Plays a sequence of successive played columns, mainly used to initilize a board.
    * @param seq: a sequence of digits corresponding to the 1-based index of the column played.
+   * @param rules: rules of the game (for instance blind variant evaluates positions with fewer line directions)
    *
    * @return number of played moves. Processing will stop at first invalid move that can be:
    *           - invalid character (non digit, or digit >= WIDTH)
@@ -126,10 +140,10 @@ class Position {
    *         Caller can check if the move sequence was valid by comparing the number of
    *         processed moves to the length of the sequence.
    */
-  unsigned int play(const std::string &seq) {
+  unsigned int play(const std::string &seq, Rules rules) {
     for(unsigned int i = 0; i < seq.size(); i++) {
       int col = seq[i] - '1';
-      if(col < 0 || col >= Position::WIDTH || !canPlay(col) || isWinningMove(col)) return i; // invalid move
+      if(col < 0 || col >= Position::WIDTH || !canPlay(col) || isWinningMove(col, rules)) return i; // invalid move
       playCol(col);
     }
     return seq.size();
@@ -138,8 +152,8 @@ class Position {
   /**
    * return true if current player can win next move
    */
-  bool canWinNext() const {
-    return winning_position() & possible();
+  bool canWinNext(Rules rules) const {
+    return winning_position(rules) & possible();
   }
 
 
@@ -189,10 +203,10 @@ class Position {
    * If you have a winning move, this function can miss it and prefer to prevent the opponent
    * to make an alignment.
    */
-  position_t possibleNonLosingMoves() const {
-    assert(!canWinNext());
+  position_t possibleNonLosingMoves(Rules rules) const {
+    assert(!canWinNext(rules));
     position_t possible_mask = possible();
-    position_t opponent_win = opponent_winning_position();
+    position_t opponent_win = opponent_winning_position(rules);
     position_t forced_moves = possible_mask & opponent_win;
     if(forced_moves) {
       if(forced_moves & (forced_moves - 1)) // check if there is more than one forced move
@@ -210,8 +224,8 @@ class Position {
    * The score we are using is the number of winning spots
    * the current player has after playing the move.
    */
-  int moveScore(position_t move) const {
-    return popcount(compute_winning_position(current_position | move, mask));
+  int moveScore(position_t move, Rules rules) const {
+    return popcount(compute_winning_position(current_position | move, mask, rules));
   }
 
   /**
@@ -244,8 +258,8 @@ class Position {
    * @param col: 0-based index of a playable column.
    * @return true if current player makes an alignment by playing the corresponding column col.
    */
-  bool isWinningMove(int col) const {
-    return winning_position() & possible() & column_mask(col);
+  bool isWinningMove(int col, Rules rules) const {
+    return winning_position(rules) & possible() & column_mask(col);
   }
 
  private:
@@ -268,15 +282,15 @@ class Position {
   /**
    * Return a bitmask of the possible winning positions for the current player
    */
-  position_t winning_position() const {
-    return compute_winning_position(current_position, mask);
+  position_t winning_position(Rules rules) const {
+    return compute_winning_position(current_position, mask, rules);
   }
 
   /**
    * Return a bitmask of the possible winning positions for the opponent
    */
-  position_t opponent_winning_position() const {
-    return compute_winning_position(current_position ^ mask, mask);
+  position_t opponent_winning_position(Rules rules) const {
+    return compute_winning_position(current_position ^ mask, mask, rules);
   }
 
   /**
@@ -299,36 +313,47 @@ class Position {
   /**
    * @parmam position, a bitmap of the player to evaluate the winning pos
    * @param mask, a mask of the already played spots
+   * @param rules, rules of the game (for instance blind variant evaluates positions with fewer line directions)
    *
    * @return a bitmap of all the winning free spots making an alignment
    */
-  static position_t compute_winning_position(position_t position, position_t mask) {
+  static position_t compute_winning_position(position_t position, position_t mask, Rules rules) {
+    position_t r = 0, p;
+
     // vertical;
-    position_t r = (position << 1) & (position << 2) & (position << 3);
+    if(rules.lines_mask & LINE_V_BIT) {
+      r = (position << 1) & (position << 2) & (position << 3);
+    }
 
     //horizontal
-    position_t p = (position << (HEIGHT + 1)) & (position << 2 * (HEIGHT + 1));
-    r |= p & (position << 3 * (HEIGHT + 1));
-    r |= p & (position >> (HEIGHT + 1));
-    p = (position >> (HEIGHT + 1)) & (position >> 2 * (HEIGHT + 1));
-    r |= p & (position << (HEIGHT + 1));
-    r |= p & (position >> 3 * (HEIGHT + 1));
+    if(rules.lines_mask & LINE_H_BIT) {
+      p = (position << (HEIGHT + 1)) & (position << 2 * (HEIGHT + 1));
+      r |= p & (position << 3 * (HEIGHT + 1));
+      r |= p & (position >> (HEIGHT + 1));
+      p = (position >> (HEIGHT + 1)) & (position >> 2 * (HEIGHT + 1));
+      r |= p & (position << (HEIGHT + 1));
+      r |= p & (position >> 3 * (HEIGHT + 1));
+    }
 
     //diagonal 1
-    p = (position << HEIGHT) & (position << 2 * HEIGHT);
-    r |= p & (position << 3 * HEIGHT);
-    r |= p & (position >> HEIGHT);
-    p = (position >> HEIGHT) & (position >> 2 * HEIGHT);
-    r |= p & (position << HEIGHT);
-    r |= p & (position >> 3 * HEIGHT);
+    if(rules.lines_mask & LINE_D1_BIT) {
+      p = (position << HEIGHT) & (position << 2 * HEIGHT);
+      r |= p & (position << 3 * HEIGHT);
+      r |= p & (position >> HEIGHT);
+      p = (position >> HEIGHT) & (position >> 2 * HEIGHT);
+      r |= p & (position << HEIGHT);
+      r |= p & (position >> 3 * HEIGHT);
+    }
 
     //diagonal 2
-    p = (position << (HEIGHT + 2)) & (position << 2 * (HEIGHT + 2));
-    r |= p & (position << 3 * (HEIGHT + 2));
-    r |= p & (position >> (HEIGHT + 2));
-    p = (position >> (HEIGHT + 2)) & (position >> 2 * (HEIGHT + 2));
-    r |= p & (position << (HEIGHT + 2));
-    r |= p & (position >> 3 * (HEIGHT + 2));
+    if(rules.lines_mask & LINE_D2_BIT) {
+      p = (position << (HEIGHT + 2)) & (position << 2 * (HEIGHT + 2));
+      r |= p & (position << 3 * (HEIGHT + 2));
+      r |= p & (position >> (HEIGHT + 2));
+      p = (position >> (HEIGHT + 2)) & (position >> 2 * (HEIGHT + 2));
+      r |= p & (position << (HEIGHT + 2));
+      r |= p & (position >> 3 * (HEIGHT + 2));
+    }
 
     return r & (board_mask ^ mask);
   }

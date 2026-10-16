@@ -38,11 +38,11 @@ namespace Connect4 {
  */
 int Solver::negamax(const Position &P, int alpha, int beta) {
   assert(alpha < beta);
-  assert(!P.canWinNext());
+  assert(!P.canWinNext(rules));
 
   nodeCount++; // increment counter of explored nodes
 
-  Position::position_t possible = P.possibleNonLosingMoves();
+  Position::position_t possible = P.possibleNonLosingMoves(rules);
   if(possible == 0)     // if no possible non losing move, opponent wins next move
     return -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2;
 
@@ -83,7 +83,7 @@ int Solver::negamax(const Position &P, int alpha, int beta) {
   MoveSorter moves;
   for(int i = Position::WIDTH; i--;)
     if(Position::position_t move = possible & Position::column_mask(columnOrder[i]))
-      moves.add(move, P.moveScore(move));
+      moves.add(move, P.moveScore(move, rules));
 
   while(Position::position_t next = moves.getNext()) {
     Position P2(P);
@@ -105,7 +105,7 @@ int Solver::negamax(const Position &P, int alpha, int beta) {
 }
 
 int Solver::solve(const Position &P, bool weak) {
-  if(P.canWinNext()) // check if win in one move as the Negamax function does not support this case.
+  if(P.canWinNext(rules)) // check if win in one move as the Negamax function does not support this case.
     return (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
   int min = -(Position::WIDTH * Position::HEIGHT - P.nbMoves()) / 2;
   int max = (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
@@ -129,7 +129,7 @@ std::vector<int> Solver::analyze(const Position &P, bool weak) {
   std::vector<int> scores(Position::WIDTH, Solver::INVALID_MOVE);
   for (int col = 0; col < Position::WIDTH; col++)
     if (P.canPlay(col)) {
-      if(P.isWinningMove(col)) scores[col] = (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
+      if(P.isWinningMove(col, rules)) scores[col] = (Position::WIDTH * Position::HEIGHT + 1 - P.nbMoves()) / 2;
       else {
         Position P2(P);
         P2.playCol(col);
@@ -140,7 +140,7 @@ std::vector<int> Solver::analyze(const Position &P, bool weak) {
 }
 
 // Constructor
-Solver::Solver() : nodeCount{0} {
+Solver::Solver(Rules rules) : rules{rules}, nodeCount{0} {
   for(int i = 0; i < Position::WIDTH; i++) // initialize the column exploration order, starting with center columns
     columnOrder[i] = Position::WIDTH / 2 + (1 - 2 * (i % 2)) * (i + 1) / 2; // example for WIDTH=7: columnOrder = {3, 4, 2, 5, 1, 6, 0}
 }

@@ -25,7 +25,7 @@ void explore(const Position &P, char* pos_str, const int depth) {
   if(nb_moves >= depth) return;  // do not explore at further depth
 
   for(int i = 0; i < Position::WIDTH; i++) // explore all possible moves
-    if(P.canPlay(i) && !P.isWinningMove(i)) {
+    if(P.canPlay(i) && !P.isWinningMove(i, REAL_RULES)) {
       Position P2(P);
       P2.playCol(i);
       pos_str[nb_moves] = '1' + i;
@@ -58,7 +58,7 @@ void generate_opening_book() {
 
     Position P;
     if(iss.fail() || !iss.eof()
-        || P.play(pos) != pos.length()
+        || P.play(pos, REAL_RULES) != pos.length()
         || score < Position::MIN_SCORE || score > Position::MAX_SCORE) {  // a valid line is a position a space and a valid score
       std::cerr << "Invalid line (line ignored): " << line << std::endl;
       continue;

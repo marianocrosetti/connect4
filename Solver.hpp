@@ -30,6 +30,7 @@ namespace Connect4 {
 
 class Solver {
  private:
+  const Rules rules; // Blind variant evaluates positions with fewer line directions
   static constexpr int TABLE_SIZE = 24; // store 2^TABLE_SIZE elements in the transpositiontbale
   TranspositionTable < uint_t < Position::WIDTH*(Position::HEIGHT + 1) - TABLE_SIZE >, Position::position_t, uint8_t, TABLE_SIZE > transTable;
   OpeningBook book{Position::WIDTH, Position::HEIGHT}; // opening book
@@ -72,7 +73,7 @@ class Solver {
     book.load(book_file);
   }
 
-  Solver(); // Constructor
+  explicit Solver(Rules rules); // Constructor
 };
 
 } // namespace Connect4
