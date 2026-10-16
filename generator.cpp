@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 using namespace GameSolver::Connect4;
 
@@ -83,7 +84,7 @@ void generate_opening_book() {
 int main(int argc, char** argv) {
   if(argc > 1) {
     int depth = atoi(argv[1]);
-    char pos_str[depth + 1] = {0};
-    explore(Position(), pos_str, depth);
+    std::vector<char> pos_str(depth + 1, 0);
+    explore(Position(), pos_str.data(), depth);
   } else generate_opening_book();
 }
