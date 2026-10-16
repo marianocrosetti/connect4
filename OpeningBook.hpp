@@ -50,6 +50,13 @@ class OpeningBook {
       return new TranspositionTable<partial_key_t, Position::position_t, uint8_t, 26>();
     case 27:
       return new TranspositionTable<partial_key_t, Position::position_t, uint8_t, 27>();
+    // tesina-v2: We added these cases below (28, 29, 30) because we plan to generate deeper books with more positions
+    case 28:
+      return new TranspositionTable<partial_key_t, Position::position_t, uint8_t, 28>();
+    case 29:
+      return new TranspositionTable<partial_key_t, Position::position_t, uint8_t, 29>();
+    case 30:
+      return new TranspositionTable<partial_key_t, Position::position_t, uint8_t, 30>();
     default:
       std::cerr << "Unimplemented OpeningBook size: " << log_size << std::endl;
       return 0;
