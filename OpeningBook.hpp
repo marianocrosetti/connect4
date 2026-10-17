@@ -175,9 +175,9 @@ class OpeningBook {
     ofs.close();
   }
 
-  int get(const Position &P) const {
+  int get(const Position &P, Rules rules) const {
     if(P.nbMoves() > depth) return 0;
-    else return T->get(P.key3());
+    else return T->get(P.key3(rules));
   }
 
   ~OpeningBook() {

@@ -17,8 +17,8 @@ std::unordered_set<uint64_t> visited;
  * Explore and print all possible position under a given depth.
  * symetric positions are printed only once.
  */
-void explore(const Position &P, char* pos_str, const int depth) {
-  uint64_t key = P.key3();
+void explore(const Position &P, char* pos_str, const int depth, const Rules book_rules) {
+  uint64_t key = P.key3(book_rules);
   if(!visited.insert(key).second)
     return; // already explored position
 
@@ -28,11 +28,11 @@ void explore(const Position &P, char* pos_str, const int depth) {
   if(nb_moves >= depth) return;  // do not explore at further depth
 
   for(int i = 0; i < Position::WIDTH; i++) // explore all possible moves
-    if(P.canPlay(i) && !P.isWinningMove(i, RULES)) {
+    if(P.canPlay(i) && !P.isWinningMove(i, REAL_RULES)) {
       Position P2(P);
       P2.playCol(i);
       pos_str[nb_moves] = '1' + i;
-      explore(P2, pos_str, depth);
+      explore(P2, pos_str, depth, book_rules);
       pos_str[nb_moves] = 0;
     }
 }
@@ -43,7 +43,7 @@ void explore(const Position &P, char* pos_str, const int depth) {
  * Input lines must be a valid position (possibly empty string), a space and a valid score
  * Read input until EOF or an empty line is reached.
  */
-void generate_opening_book() {
+void generate_opening_book(const Rules book_rules) {
   static constexpr int BOOK_SIZE = 23; // store 2^BOOK_SIZE positions in the book
   static constexpr int DEPTH = 14;     // max depth of every position to be stored
   static constexpr double LOG_3 = 1.58496250072; // log2(3)
@@ -61,12 +61,12 @@ void generate_opening_book() {
 
     Position P;
     if(iss.fail() || !iss.eof()
-        || P.play(pos, RULES) != pos.length()
+        || P.play(pos, REAL_RULES) != pos.length()
         || score < Position::MIN_SCORE || score > Position::MAX_SCORE) {  // a valid line is a position a space and a valid score
       std::cerr << "Invalid line (line ignored): " << line << std::endl;
       continue;
     }
-    table->put(P.key3(), score - Position::MIN_SCORE + 1);
+    table->put(P.key3(book_rules), score - Position::MIN_SCORE + 1);
     if(count % 1000000 == 0) std::cerr << count << std::endl;
   }
 
@@ -85,6 +85,6 @@ int main(int argc, char** argv) {
   if(argc > 1) {
     int depth = atoi(argv[1]);
     std::vector<char> pos_str(depth + 1, 0);
-    explore(Position(), pos_str.data(), depth);
-  } else generate_opening_book();
+    explore(Position(), pos_str.data(), depth, RULES);
+  } else generate_opening_book(RULES);
 }

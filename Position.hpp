@@ -40,6 +40,10 @@ static constexpr unsigned ALL_LINES_MASK = LINE_V_BIT | LINE_H_BIT | LINE_D1_BIT
 // Blind variant evaluates positions with fewer line directions.
 struct Rules {
   unsigned lines_mask; // OR of LINE_*_BIT
+
+  constexpr bool can_merge_mirrors() const {
+    return ((lines_mask & LINE_D1_BIT) != 0) == ((lines_mask & LINE_D2_BIT) != 0);
+  }
 };
 static constexpr Rules REAL_RULES{ALL_LINES_MASK};
 
@@ -185,9 +189,11 @@ class Position {
   * as the last digit is always 0, we omit it and a base 3 key
   * uses N = (nbMoves + nbColums - 1) base 3 digits or N*log2(3) bits.
   */
-  uint64_t key3() const {
+  uint64_t key3(Rules rules) const {
     uint64_t key_forward = 0;
     for(int i = 0; i < Position::WIDTH; i++) partialKey3(key_forward, i);  // compute key in increasing order of columns
+
+    if(!rules.can_merge_mirrors()) return key_forward / 3; // if the rules indicates we can't merge mirror then we stop here
 
     uint64_t key_reverse = 0;
     for(int i = Position::WIDTH; i--;) partialKey3(key_reverse, i);  // compute key in decreasing order of columns
