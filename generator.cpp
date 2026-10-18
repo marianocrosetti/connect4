@@ -7,9 +7,8 @@
 #include <unordered_set>
 #include <vector>
 
-using namespace GameSolver::Connect4;
-
-static constexpr Rules RULES = REAL_RULES;
+namespace GameSolver {
+namespace Connect4 {
 
 std::unordered_set<uint64_t> visited;
 
@@ -77,14 +76,5 @@ void generate_opening_book(const Rules book_rules) {
   book.save(book_file.str());
 }
 
-/**
- * If used with a max depth parameter: generate all uniquepsoition upto max depth
- * If no parameter: read scoredposition from standard input to store in an opening book
- */
-int main(int argc, char** argv) {
-  if(argc > 1) {
-    int depth = atoi(argv[1]);
-    std::vector<char> pos_str(depth + 1, 0);
-    explore(Position(), pos_str.data(), depth, RULES);
-  } else generate_opening_book(RULES);
-}
+} // namespace Connect4
+} // namespace GameSolver
