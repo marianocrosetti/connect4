@@ -1,4 +1,4 @@
-#include "Position.hpp"
+#include "Generator.hpp"
 #include "OpeningBook.hpp"
 
 #include <iostream>
@@ -10,30 +10,34 @@
 namespace GameSolver {
 namespace Connect4 {
 
-std::unordered_set<uint64_t> visited;
-
 /**
- * Explore and print all possible position under a given depth.
- * symetric positions are printed only once.
+ * Explore and store all possible position under a given depth.
+ * symetric positions are stored only once.
  */
-void explore(const Position &P, char* pos_str, const int depth, const Rules book_rules) {
+static void explore(const Position &P, const int depth, const Rules book_rules,
+                    std::unordered_set<uint64_t> &visited, std::vector<Position> &positions) {
   uint64_t key = P.key3(book_rules);
   if(!visited.insert(key).second)
     return; // already explored position
 
   int nb_moves = P.nbMoves();
   if(nb_moves <= depth)
-  std::cout << pos_str << std::endl;
+  positions.push_back(P);
   if(nb_moves >= depth) return;  // do not explore at further depth
 
   for(int i = 0; i < Position::WIDTH; i++) // explore all possible moves
     if(P.canPlay(i) && !P.isWinningMove(i, REAL_RULES)) {
       Position P2(P);
       P2.playCol(i);
-      pos_str[nb_moves] = '1' + i;
-      explore(P2, pos_str, depth, book_rules);
-      pos_str[nb_moves] = 0;
+      explore(P2, depth, book_rules, visited, positions);
     }
+}
+
+std::vector<Position> enumerate_positions(int depth, Rules book_rules) {
+  std::unordered_set<uint64_t> visited;
+  std::vector<Position> positions;
+  explore(Position(), depth, book_rules, visited, positions);
+  return positions;
 }
 
 /**

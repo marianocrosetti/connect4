@@ -4,8 +4,10 @@
 //     ./build/c4 --config example.toml
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "CLI11.hpp"
+#include "Generator.hpp"
 #include "cli.hpp"
 
 static int not_implemented(const CLI::App* sub) {
@@ -31,6 +33,10 @@ int main(int argc, char** argv) {
   bookgen->add_option("--out", out, "name of the output file will be <out>-rules-depth.book)")->required();
 
   CLI11_PARSE(app, argc, argv);
-  if (*bookgen) return not_implemented(bookgen);
+  if (*bookgen) {
+    std::vector<GameSolver::Connect4::Position> positions = GameSolver::Connect4::enumerate_positions(depth, c4::parse_rules(rules));
+    std::cerr << "enumerated " << positions.size() << " positions" << std::endl;
+    return not_implemented(bookgen);  // TODO: solve and pack
+  }
   return 0;
 }
