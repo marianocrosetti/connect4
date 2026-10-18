@@ -35,6 +35,16 @@ inline Rules parse_rules(const std::string& text) {
   return Rules{mask};
 }
 
+// Canonical name of the rules: directions in the order V, H, D1, D2 (parse_rules("D2HV") -> "VHD2").
+inline std::string rules_name(Rules rules) {
+  std::string name;
+  if (rules.lines_mask & GameSolver::Connect4::LINE_V_BIT) name += "V";
+  if (rules.lines_mask & GameSolver::Connect4::LINE_H_BIT) name += "H";
+  if (rules.lines_mask & GameSolver::Connect4::LINE_D1_BIT) name += "D1";
+  if (rules.lines_mask & GameSolver::Connect4::LINE_D2_BIT) name += "D2";
+  return name;
+}
+
 inline const CLI::Validator RULES_VALIDATOR(
     [](const std::string& s) {
       try { parse_rules(s); return std::string(); } catch (const std::exception& e) { return std::string(e.what()); }

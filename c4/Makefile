@@ -5,7 +5,7 @@ CXXFLAGS ?= -std=c++17 -O3 -DNDEBUG -Wall
 CPPFLAGS += -DC4_WIDTH=6 -DC4_HEIGHT=5 -I.. -isystem $(BUILD) -MMD -MP
 
 BUILD := build
-OBJS  := $(BUILD)/c4.o $(BUILD)/generator.o
+OBJS  := $(BUILD)/c4.o $(BUILD)/Generator.o $(BUILD)/Solver.o
 
 # CLI11: single-header command-line library. Downloaded once, with a pinned version and checksum.
 CLI11_VERSION := 2.7.2

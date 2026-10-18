@@ -3,19 +3,21 @@
 
 #include "Position.hpp"
 
+#include <string>
 #include <vector>
 
 namespace GameSolver {
 namespace Connect4 {
 
-/**
- * All positions with at most depth stones. The first one is the empty board.
- * Legality uses the real rules: a move that completes a line ends the game, so it is not followed.
- * A position and its mirror are listed once if book_rules allow merging mirrors (same book key).
- * Order: depth first, columns left to right.
- * Reports the number of positions found so far with report_progress (Progress.hpp).
- */
+static constexpr int MAX_BOOK_DEPTH = 14;
+static constexpr int BOOK_LOG_SIZE = 29;
+
 std::vector<Position> enumerate_positions(int depth, Rules book_rules);
+
+std::vector<int> solve_positions(const std::vector<Position> &positions, Rules book_rules, bool weak);
+
+void save_opening_book(const std::vector<Position> &positions, const std::vector<int> &scores,
+                       int depth, Rules book_rules, const std::string &file);
 
 } // namespace Connect4
 } // namespace GameSolver
