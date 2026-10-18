@@ -9,6 +9,8 @@
 #include "CLI11.hpp"
 #include "Generator.hpp"
 #include "cli.hpp"
+#include "position_counts.hpp"
+#include "progress_bar.hpp"
 
 static int not_implemented(const CLI::App* sub) {
   std::cerr << "[" << sub->get_name() << "]\n" << sub->config_to_str(true, false);
@@ -34,7 +36,10 @@ int main(int argc, char** argv) {
 
   CLI11_PARSE(app, argc, argv);
   if (*bookgen) {
-    std::vector<GameSolver::Connect4::Position> positions = GameSolver::Connect4::enumerate_positions(depth, c4::parse_rules(rules));
+    GameSolver::Connect4::Rules book_rules = c4::parse_rules(rules);
+    c4::progress::start("enumerate", c4::count_positions(depth, book_rules));
+    std::vector<GameSolver::Connect4::Position> positions = GameSolver::Connect4::enumerate_positions(depth, book_rules);
+    c4::progress::finish();
     std::cerr << "enumerated " << positions.size() << " positions" << std::endl;
     return not_implemented(bookgen);  // TODO: solve and pack
   }

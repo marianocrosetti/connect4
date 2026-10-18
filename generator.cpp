@@ -1,4 +1,5 @@
 #include "Generator.hpp"
+#include "Progress.hpp"
 #include "OpeningBook.hpp"
 
 #include <iostream>
@@ -22,7 +23,10 @@ static void explore(const Position &P, const int depth, const Rules book_rules,
 
   int nb_moves = P.nbMoves();
   if(nb_moves <= depth)
-  positions.push_back(P);
+  {
+    positions.push_back(P);
+    report_progress(positions.size());
+  }
   if(nb_moves >= depth) return;  // do not explore at further depth
 
   for(int i = 0; i < Position::WIDTH; i++) // explore all possible moves

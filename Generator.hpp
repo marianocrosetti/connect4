@@ -13,6 +13,7 @@ namespace Connect4 {
  * Legality uses the real rules: a move that completes a line ends the game, so it is not followed.
  * A position and its mirror are listed once if book_rules allow merging mirrors (same book key).
  * Order: depth first, columns left to right.
+ * Reports the number of positions found so far with report_progress (Progress.hpp).
  */
 std::vector<Position> enumerate_positions(int depth, Rules book_rules);
 
