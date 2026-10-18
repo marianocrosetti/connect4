@@ -29,3 +29,6 @@
 
 # vim swap file
 *.swp
+
+# tesina-v2: c4 build output
+c4/build/

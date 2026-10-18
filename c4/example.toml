@@ -1,0 +1,9 @@
+# Example configuration for c4. 
+# Usage: 
+#     ./build/c4 --config example.toml
+# Note: Use only ONE subcomand per toml.
+
+[bookgen]
+rules = "VHD2"
+depth = 8
+out = "books/6x5"
