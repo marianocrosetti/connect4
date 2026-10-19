@@ -69,8 +69,8 @@ class Solver {
     transTable.reset();
   }
 
-  void loadBook(std::string book_file) {
-    book.load(book_file);
+  bool loadBook(std::string book_file) {
+    return book.load(book_file);
   }
 
   explicit Solver(Rules rules); // Constructor
